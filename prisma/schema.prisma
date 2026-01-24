@@ -1,0 +1,174 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Core Failure Tracking
+// ============================================
+
+model FailureEvent {
+  id            String        @id @default(cuid())
+  repoFullName  String
+  repoOwner     String
+  repoName      String
+  commitSha     String
+  runId         BigInt
+  jobId         BigInt?
+  branch        String
+  workflowName  String?
+  logsUrl       String?
+  filePath      String?
+  lineNumber    Int?
+  errorType     String?
+  errorMessage  String?       @db.Text
+  rawLog        String?       @db.Text
+  status        FailureStatus @default(DETECTED)
+  prUrl         String?
+  prNumber      Int?
+  confidence    Float?
+  language      String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  fixedAt       DateTime?
+  closedAt      DateTime?
+  
+  fixAttempts   FixAttempt[]
+  notifications Notification[]
+  
+  @@index([repoFullName, status])
+  @@index([commitSha])
+  @@index([createdAt])
+}
+
+model FixAttempt {
+  id              String       @id @default(cuid())
+  failureEventId  String
+  originalCode    String       @db.Text
+  fixedCode       String       @db.Text
+  diffSummary     String?      @db.Text
+  confidence      Float
+  validationPassed Boolean     @default(false)
+  applied         Boolean      @default(false)
+  geminiModel     String       @default("gemini-1.5-flash")
+  promptTokens    Int?
+  responseTokens  Int?
+  latencyMs       Int?
+  errorReason     String?
+  createdAt       DateTime     @default(now())
+  
+  failureEvent    FailureEvent @relation(fields: [failureEventId], references: [id], onDelete: Cascade)
+  
+  @@index([failureEventId])
+}
+
+// ============================================
+// Notifications Tracking
+// ============================================
+
+model Notification {
+  id              String           @id @default(cuid())
+  failureEventId  String
+  channel         NotificationChannel
+  status          NotificationStatus @default(PENDING)
+  payload         Json?
+  response        Json?
+  sentAt          DateTime?
+  createdAt       DateTime         @default(now())
+  
+  failureEvent    FailureEvent     @relation(fields: [failureEventId], references: [id], onDelete: Cascade)
+  
+  @@index([failureEventId])
+}
+
+// ============================================
+// Learning & Pattern Storage
+// ============================================
+
+model SuccessPattern {
+  id              String       @id @default(cuid())
+  errorType       String
+  language        String
+  errorPattern    String       @db.Text
+  fixPattern      String       @db.Text
+  occurrences     Int          @default(1)
+  successRate     Float        @default(1.0)
+  lastUsed        DateTime     @default(now())
+  createdAt       DateTime     @default(now())
+  
+  @@unique([errorType, language, errorPattern])
+  @@index([errorType, language])
+}
+
+// ============================================
+// Rate Limiting & Safety
+// ============================================
+
+model RateLimit {
+  id              String       @id @default(cuid())
+  repoFullName    String       @unique
+  attemptsThisHour Int         @default(0)
+  lastAttemptAt   DateTime     @default(now())
+  hourlyResetAt   DateTime
+  isBlacklisted   Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  @@index([repoFullName])
+}
+
+// ============================================
+// Repository Configuration
+// ============================================
+
+model RepoConfig {
+  id                  String   @id @default(cuid())
+  repoFullName        String   @unique
+  autoFixEnabled      Boolean  @default(true)
+  autoMergeEnabled    Boolean  @default(false)
+  notifyDiscord       Boolean  @default(true)
+  notifySlack         Boolean  @default(false)
+  requiredReviewers   String[] @default([])
+  protectedPaths      String[] @default([])
+  maxConfidenceThreshold Float @default(0.85)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  @@index([repoFullName])
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum FailureStatus {
+  DETECTED
+  ANALYZING
+  RETRIEVING
+  FIXING
+  VALIDATING
+  PR_CREATED
+  FIXED
+  FAILED
+  SKIPPED
+  MANUAL_REVIEW
+}
+
+enum NotificationChannel {
+  DISCORD
+  SLACK
+  EMAIL
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
