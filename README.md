@@ -1,30 +1,67 @@
-# 🤖 CodeAutopsy - AI-Powered CI/CD Failure Auto-Fix Agent
+# 🔬 CodeAutoSpy - AI-Powered CI/CD Failure Auto-Fix Agent
 
 <div align="center">
 
-![CodeAutopsy Logo](https://img.shields.io/badge/CodeAutopsy-AI%20Agent-blueviolet?style=for-the-badge&logo=robot)
+![CodeAutoSpy](https://img.shields.io/badge/CodeAutoSpy-AI%20Agent-blueviolet?style=for-the-badge&logo=robot)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green?style=flat-square&logo=node.js)](https://nodejs.org/)
-[![Gemini AI](https://img.shields.io/badge/Gemini-AI-blue?style=flat-square&logo=google)](https://ai.google.dev/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![Gemini AI](https://img.shields.io/badge/Gemini%202.5-AI-blue?style=flat-square&logo=google)](https://ai.google.dev/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-316192?style=flat-square&logo=postgresql)](https://postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-Queue-DC382D?style=flat-square&logo=redis)](https://redis.io/)
 
-**Automatically diagnose and fix CI/CD build failures using Gemini AI** 🔬
+**Automatically diagnose and fix CI/CD build failures using Google Gemini AI** 🚀
+
+*Push broken code → CI fails → AI fixes it → PR created → All in under 2 minutes!*
 
 </div>
 
 ---
 
-## 🎯 What is CodeAutopsy?
+## 📋 Table of Contents
 
-CodeAutopsy is an intelligent AI agent that monitors your GitHub CI/CD pipelines, automatically diagnoses build failures, generates fixes, and creates Pull Requests—all in under 2 minutes.
+- [Overview](#-overview)
+- [Features](#-features)
+- [Architecture](#-architecture)
+- [Tech Stack](#-tech-stack)
+- [Quick Start](#-quick-start)
+- [Configuration](#-configuration)
+- [How It Works](#-how-it-works)
+- [API Endpoints](#-api-endpoints)
+- [Supported Languages](#-supported-languages)
+- [Safety Features](#-safety-features)
+- [Project Structure](#-project-structure)
 
-### ✨ Key Features
+---
 
-- 🔍 **Intelligent Log Analysis** - Uses Gemini AI to parse build logs and identify exact error locations
+## 🎯 Overview
+
+**CodeAutoSpy** is an intelligent, autonomous agent that monitors GitHub CI/CD pipelines, automatically diagnoses build failures, and creates Pull Requests with AI-generated fixes. It acts as a "self-healing" system for your codebase.
+
+### The Problem It Solves
+
+| Problem | Solution |
+|---------|----------|
+| Developers spend 15-30% of time debugging CI failures | Automatic detection and fixing |
+| Simple syntax errors block deployments | AI understands context and fixes instantly |
+| Build failures at night go unnoticed | 24/7 monitoring with Discord/Slack alerts |
+| Repetitive errors waste developer time | Pattern recognition and automated fixes |
+
+---
+
+## ✨ Features
+
+### Core Features
+- 🔍 **Intelligent Log Analysis** - AI-powered parsing to identify exact error locations
 - 🛠️ **Automated Code Fixes** - Generates minimal, surgical fixes for common errors
-- 🚀 **Automatic PR Creation** - Creates well-documented Pull Requests with the fix
+- 🚀 **Automatic PR Creation** - Creates well-documented Pull Requests with fixes
 - 📢 **Real-time Notifications** - Discord and Slack integration for instant alerts
-- 🛡️ **Safety Guardrails** - Rate limiting, confidence scoring, and protected paths
-- 🌐 **Multi-Language Support** - Python, JavaScript, TypeScript, Java, C, Go, Rust, Docker
+
+### Safety Features
+- 🛡️ **Rate Limiting** - Prevents infinite fix loops (configurable per repo)
+- 📊 **Confidence Scoring** - Only auto-fixes high-confidence cases
+- 🔒 **Protected Paths** - Never modifies sensitive files (.env, configs, etc.)
+
+### Multi-Language Support
+- JavaScript/TypeScript, Python, Java, C/C++, Go, Rust, Docker
 
 ---
 
@@ -32,24 +69,102 @@ CodeAutopsy is an intelligent AI agent that monitors your GitHub CI/CD pipelines
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CodeAutopsy Flow                                │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  GitHub Actions     Webhook        Scout         Retriever       Surgeon    │
-│  ┌─────────────┐   ┌─────────┐   ┌─────────┐   ┌───────────┐   ┌─────────┐ │
-│  │   Build     │   │ Express │   │ Analyze │   │  Fetch    │   │ Generate│ │
-│  │   Fails     │──▶│ Server  │──▶│  Logs   │──▶│  Source   │──▶│   Fix   │ │
-│  │             │   │         │   │         │   │   Code    │   │         │ │
-│  └─────────────┘   └─────────┘   └─────────┘   └───────────┘   └─────────┘ │
-│                                                                      │      │
-│                                                                      ▼      │
-│  ┌─────────────┐   ┌─────────┐                               ┌─────────┐   │
-│  │  Discord/   │◀──│Operator │◀──────────────────────────────│Validate │   │
-│  │   Slack     │   │Create PR│                               │  Fix    │   │
-│  └─────────────┘   └─────────┘                               └─────────┘   │
-│                                                                             │
+│                              GITHUB                                          │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐                      │
+│  │   Push      │───▶│  CI/CD Run  │───▶│  Failure!   │                      │
+│  │   Code      │    │  (Actions)  │    │  Webhook    │                      │
+│  └─────────────┘    └─────────────┘    └──────┬──────┘                      │
+└────────────────────────────────────────────────┼────────────────────────────┘
+                                                 │
+                                                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           CODEAUTOSPY SERVER                                 │
+│                                                                              │
+│  ┌──────────────────┐                                                        │
+│  │  Webhook Handler │◀─────── GitHub POST /webhooks/github                   │
+│  │  (Express.js)    │                                                        │
+│  └────────┬─────────┘                                                        │
+│           │                                                                  │
+│           ▼                                                                  │
+│  ┌──────────────────┐         ┌──────────────────┐                          │
+│  │   Bull Queue     │────────▶│     Redis        │                          │
+│  │   (Job Queue)    │         │   (Job Storage)  │                          │
+│  └────────┬─────────┘         └──────────────────┘                          │
+│           │                                                                  │
+│           ▼                                                                  │
+│  ┌──────────────────────────────────────────────────────────────────┐       │
+│  │                        AI AGENT PIPELINE                          │       │
+│  │                                                                   │       │
+│  │  ┌─────────┐    ┌───────────┐    ┌─────────┐    ┌──────────┐    │       │
+│  │  │ SCOUT   │───▶│ RETRIEVER │───▶│ SURGEON │───▶│ OPERATOR │    │       │
+│  │  │         │    │           │    │         │    │          │    │       │
+│  │  │Analyze  │    │Fetch Code │    │Generate │    │Create PR │    │       │
+│  │  │Logs     │    │from GitHub│    │AI Fix   │    │on GitHub │    │       │
+│  │  └─────────┘    └───────────┘    └─────────┘    └──────────┘    │       │
+│  │                           │                                       │       │
+│  │                           ▼                                       │       │
+│  │                  ┌─────────────────┐                             │       │
+│  │                  │   Gemini AI     │                             │       │
+│  │                  │  (gemini-2.5)   │                             │       │
+│  │                  └─────────────────┘                             │       │
+│  └──────────────────────────────────────────────────────────────────┘       │
+│           │                                                                  │
+│           ▼                                                                  │
+│  ┌──────────────────┐         ┌──────────────────┐                          │
+│  │   PostgreSQL     │         │   Notifications   │                          │
+│  │   (Prisma ORM)   │         │  Discord/Slack    │                          │
+│  └──────────────────┘         └──────────────────┘                          │
+│                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+### 🤖 The 4 AI Agents
+
+| Agent | Purpose | Technology |
+|-------|---------|------------|
+| **Scout** 🔍 | Analyzes build logs, identifies failing file/line | Regex + Gemini AI |
+| **Retriever** 📥 | Fetches source code and context from GitHub | GitHub API |
+| **Surgeon** 🔧 | Generates code fixes using AI | Gemini 2.5 Flash |
+| **Operator** 🚀 | Creates PRs or Issues on GitHub | GitHub API |
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend
+| Technology | Purpose |
+|------------|---------|
+| **Node.js 18+** | Runtime environment |
+| **Express.js** | Web server framework |
+| **ES Modules** | Modern JavaScript modules |
+
+### AI/ML
+| Technology | Purpose |
+|------------|---------|
+| **Google Gemini AI** | Code analysis and fix generation |
+| **gemini-2.5-flash** | Fast model for analysis and fixes |
+
+### Database & Queue
+| Technology | Purpose |
+|------------|---------|
+| **PostgreSQL** | Primary database |
+| **Prisma ORM** | Database access layer |
+| **Redis** | Job queue backend |
+| **Bull** | Redis-based job queue |
+
+### Integrations
+| Technology | Purpose |
+|------------|---------|
+| **GitHub API (Octokit)** | Fetch logs, create PRs, manage branches |
+| **Discord Webhook** | Real-time notifications |
+| **Slack Webhook** | Team notifications |
+
+### Infrastructure
+| Technology | Purpose |
+|------------|---------|
+| **Docker** | Containerization |
+| **Docker Compose** | Multi-container orchestration |
+| **ngrok** | Local tunnel for webhook testing |
 
 ---
 
@@ -58,112 +173,80 @@ CodeAutopsy is an intelligent AI agent that monitors your GitHub CI/CD pipelines
 ### Prerequisites
 
 - Node.js 18+
-- Docker & Docker Compose (for PostgreSQL and Redis)
-- GitHub Personal Access Token
-- Google Gemini API Key
+- Docker & Docker Compose
+- GitHub Personal Access Token (with repo permissions)
+- Google Gemini API Key ([Get one here](https://aistudio.google.com/apikey))
 
 ### 1. Clone and Install
 
 ```bash
-git clone https://github.com/yourusername/codeautopsy.git
-cd codeautopsy
+git clone https://github.com/hariharan-r06/CodeAutoSpy.git
+cd CodeAutoSpy
 npm install
 ```
 
 ### 2. Configure Environment
 
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your credentials:
+Create a `.env` file with:
 
 ```env
-# Required
-GITHUB_TOKEN=ghp_your_github_token
+# GitHub Configuration
+GITHUB_TOKEN=ghp_your_github_personal_access_token
+GITHUB_WEBHOOK_SECRET=your_webhook_secret_here
+
+# Gemini AI Configuration
 GEMINI_API_KEY=your_gemini_api_key
 
-# Database (Docker will use defaults)
+# Database
 DATABASE_URL=postgresql://postgres:password@localhost:5432/codeautopsy
 
 # Redis
 REDIS_URL=redis://localhost:6379
 
-# Optional: Notifications
+# Notifications (Optional)
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+
+# Server
+PORT=3000
 ```
 
 ### 3. Start Services
 
 ```bash
-# Start PostgreSQL and Redis with Docker
+# Start PostgreSQL and Redis
 docker-compose up -d db redis
 
-# Run database migrations
-npx prisma db push
-npx prisma generate
+# Initialize database
+npm run db:push
+npm run db:generate
 
 # Start the server
 npm run dev
 ```
 
-### 4. Expose Webhook (for local development)
+### 4. Expose Webhook (Local Development)
 
 ```bash
 # Using ngrok
 ngrok http 3000
 
-# Your webhook URL will be: https://<ngrok-id>.ngrok.io/webhooks/github
+# Your webhook URL: https://<ngrok-id>.ngrok-free.app/webhooks/github
 ```
 
 ### 5. Configure GitHub Webhook
 
-1. Go to your repository → Settings → Webhooks
-2. Add webhook:
-   - **Payload URL**: `https://<your-url>/webhooks/github`
+1. Go to your repository → **Settings** → **Webhooks**
+2. Click **Add webhook**
+3. Configure:
+   - **Payload URL**: `https://<your-ngrok-url>/webhooks/github`
    - **Content type**: `application/json`
-   - **Secret**: (same as `GITHUB_WEBHOOK_SECRET` in `.env`)
-   - **Events**: Select "Workflow jobs" and "Workflow runs"
+   - **Secret**: Same as `GITHUB_WEBHOOK_SECRET` in `.env`
+   - **Events**: Select **"Workflow jobs"**
+4. Click **Add webhook**
 
----
+### 6. Test It!
 
-## 📖 Usage
-
-### Trigger a Fix (Push Broken Code)
-
-```bash
-# Example: Push code with a syntax error
-echo "def broken_function(x, y:" > test.py
-git add test.py
-git commit -m "Add feature"
-git push origin main
-```
-
-### What Happens Next
-
-1. **GitHub Actions** fails (within ~30 seconds)
-2. **CodeAutopsy** receives webhook (immediately)
-3. **Scout** analyzes logs (5-10 seconds)
-4. **Retriever** fetches source (2-5 seconds)
-5. **Surgeon** generates fix (10-30 seconds)
-6. **Operator** creates PR (5-10 seconds)
-7. **Discord/Slack** notification sent
-
-**Total Time: < 2 minutes!**
-
-### Example Discord Notification
-
-```
-✅ CodeAutopsy: Fix Deployed
-
-📦 Repository: username/my-app
-🌿 Branch: main
-🔴 Error Type: SyntaxError
-📄 File Fixed: test.py
-📊 Confidence: 95%
-🔗 Pull Request: View PR #42
-```
+Push code with a syntax error to your repo and watch CodeAutoSpy create a fix PR! 🎉
 
 ---
 
@@ -171,78 +254,66 @@ git push origin main
 
 ### Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GITHUB_TOKEN` | ✅ | GitHub PAT with repo access |
-| `GEMINI_API_KEY` | ✅ | Google Gemini API key |
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
-| `REDIS_URL` | ✅ | Redis connection URL |
-| `GITHUB_WEBHOOK_SECRET` | ⚠️ | Webhook signature secret |
-| `DISCORD_WEBHOOK_URL` | ❌ | Discord notifications |
-| `SLACK_WEBHOOK_URL` | ❌ | Slack notifications |
-| `MIN_CONFIDENCE_FOR_PR` | ❌ | Minimum confidence for auto-PR (default: 0.85) |
-| `MAX_FIX_ATTEMPTS_PER_HOUR` | ❌ | Rate limit per repo (default: 5) |
-| `PROTECTED_PATHS` | ❌ | Comma-separated paths to never modify |
-
-### Protected Paths
-
-By default, CodeAutopsy will never modify:
-- `config/` directories
-- `secrets/` directories
-- `.github/workflows/` files
-- `.env` files
-
-Add more via `PROTECTED_PATHS=path1,path2,path3`
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `GITHUB_TOKEN` | ✅ | - | GitHub PAT with repo access |
+| `GEMINI_API_KEY` | ✅ | - | Google Gemini API key |
+| `DATABASE_URL` | ✅ | - | PostgreSQL connection string |
+| `REDIS_URL` | ✅ | - | Redis connection URL |
+| `GITHUB_WEBHOOK_SECRET` | ✅ | - | Webhook signature secret |
+| `DISCORD_WEBHOOK_URL` | ❌ | - | Discord notifications |
+| `SLACK_WEBHOOK_URL` | ❌ | - | Slack notifications |
+| `PORT` | ❌ | 3000 | Server port |
+| `MIN_CONFIDENCE_FOR_PR` | ❌ | 0.7 | Minimum confidence for auto-PR |
+| `MAX_FIX_ATTEMPTS_PER_HOUR` | ❌ | 5 | Rate limit per repo |
 
 ---
 
-## 🧪 Testing
+## 🔄 How It Works
 
-### Run Unit Tests
+### Flow Diagram
 
-```bash
-npm test
+```
+1. Developer pushes code with error
+        ↓
+2. GitHub Actions runs and FAILS
+        ↓
+3. GitHub sends webhook to CodeAutoSpy
+        ↓
+4. Scout Agent analyzes build logs
+   → Identifies: file, line number, error type
+        ↓
+5. Retriever Agent fetches source code
+   → Gets file content from GitHub
+        ↓
+6. Surgeon Agent generates fix
+   → Uses Gemini AI to create minimal fix
+        ↓
+7. Operator Agent creates PR
+   → Branches, commits, and opens PR
+        ↓
+8. Notification sent to Discord/Slack
+        ↓
+9. Developer reviews and merges PR ✅
 ```
 
-### Run with Coverage
+### Example Scenario
 
-```bash
-npm test -- --coverage
+**Input (Broken Code):**
+```javascript
+const About = ( => {  // Missing closing parenthesis
+  return <div>About</div>
+}
 ```
 
-### Test Scenarios
-
-The test suite includes:
-- Scout agent log parsing
-- Surgeon code generation
-- Webhook handling
-- Integration pipeline
-
----
-
-## 🐳 Docker Deployment
-
-### Full Stack with Docker Compose
-
-```bash
-# Build and start everything
-docker-compose up -d
-
-# View logs
-docker-compose logs -f app
-
-# Stop all services
-docker-compose down
+**Output (Fixed Code):**
+```javascript
+const About = () => {  // Fixed!
+  return <div>About</div>
+}
 ```
 
-### With Queue Monitoring (Bull Board)
-
-```bash
-# Start with monitoring profile
-docker-compose --profile monitoring up -d
-
-# Access Bull Board at http://localhost:3001
-```
+**Result:** PR #1 created with title "[CodeAutopsy] Fix Error in src/pages/About.jsx"
 
 ---
 
@@ -250,12 +321,10 @@ docker-compose --profile monitoring up -d
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/` | GET | Service info |
+| `/` | GET | Service info and status |
 | `/webhooks/github` | POST | GitHub webhook receiver |
 | `/webhooks/health` | GET | Health check |
-| `/webhooks/status` | GET | Queue and event status |
-| `/api/queue` | GET | Queue statistics |
-| `/api/trigger` | POST | Manual trigger (testing) |
+| `/webhooks/status` | GET | Queue and event statistics |
 
 ---
 
@@ -263,13 +332,12 @@ docker-compose --profile monitoring up -d
 
 | Language | Error Types Supported |
 |----------|----------------------|
-| **Python** | SyntaxError, IndentationError, ModuleNotFoundError, ImportError |
-| **JavaScript** | SyntaxError, ReferenceError, TypeError, Module not found |
-| **TypeScript** | TS2304, TS2322, TS2339, compilation errors |
-| **Java** | ClassNotFoundException, NullPointerException, compilation errors |
-| **C/C++** | Compilation errors, linker errors, undefined references |
-| **Go** | Compilation errors, package errors, undefined identifiers |
-| **Rust** | E0425, E0308, borrow checker errors |
+| **JavaScript/TypeScript** | SyntaxError, ReferenceError, TypeError, Import errors |
+| **Python** | SyntaxError, IndentationError, ImportError, ModuleNotFoundError |
+| **Java** | Compilation errors, ClassNotFoundException |
+| **C/C++** | Compilation errors, linker errors |
+| **Go** | Compilation errors, undefined identifiers |
+| **Rust** | Compiler errors (E0425, E0308, etc.) |
 | **Docker** | COPY failed, RUN failed, build errors |
 
 ---
@@ -277,63 +345,73 @@ docker-compose --profile monitoring up -d
 ## 🛡️ Safety Features
 
 ### Confidence Scoring
-
-Each fix is assigned a confidence score (0-1) based on:
-- Change size (smaller = higher confidence)
-- Validation checks
-- Error type commonality
-- Syntax verification
-
-**Auto-PR**: confidence ≥ 0.85
-**Issue creation**: confidence ≥ 0.50
+- Each fix gets a confidence score (0-1)
+- **Auto-PR**: confidence ≥ 0.7
+- **Create Issue**: confidence ≥ 0.5
+- **Skip**: confidence < 0.5
 
 ### Rate Limiting
-
 - Maximum 5 fix attempts per repository per hour
-- Configurable via `MAX_FIX_ATTEMPTS_PER_HOUR`
+- Prevents infinite fix loops
 
-### Protected Files
-
-- Never modifies critical config files
-- Blacklist paths via `PROTECTED_PATHS`
+### Protected Paths
+Never modifies:
+- `.env` files
+- `package-lock.json`, `yarn.lock`
+- `.github/workflows/` files
+- `config/` and `secrets/` directories
 
 ---
 
-## 🔧 Development
-
-### Project Structure
+## 📁 Project Structure
 
 ```
-codeautopsy/
+CodeAutoSpy/
 ├── src/
-│   ├── server.js              # Main Express server
-│   ├── config/                # Configuration modules
-│   │   ├── database.js        # Prisma client
-│   │   ├── gemini.js          # Gemini AI setup
-│   │   └── github.js          # GitHub API client
-│   ├── agents/                # Core AI agents
-│   │   ├── scout.js           # Log analysis
-│   │   ├── retriever.js       # Code fetching
-│   │   ├── surgeon.js         # Fix generation
-│   │   └── operator.js        # PR creation
-│   ├── prompts/               # Gemini prompts
-│   ├── webhooks/              # Webhook handlers
-│   ├── queue/                 # Bull queue
-│   ├── notifications/         # Discord/Slack
-│   └── utils/                 # Utilities
+│   ├── agents/               # AI Agents
+│   │   ├── scout.js          # Log analysis
+│   │   ├── retriever.js      # Code fetching
+│   │   ├── surgeon.js        # Fix generation
+│   │   └── operator.js       # PR creation
+│   ├── config/               # Configuration
+│   │   ├── database.js       # Prisma client
+│   │   ├── gemini.js         # Gemini AI setup
+│   │   └── github.js         # GitHub API (Octokit)
+│   ├── prompts/              # AI Prompts
+│   │   ├── scout-prompt.js
+│   │   └── surgeon-prompt.js
+│   ├── queue/
+│   │   └── fix-queue.js      # Bull job queue
+│   ├── webhooks/
+│   │   └── github-listener.js
+│   ├── notifications/
+│   │   └── discord.js
+│   ├── utils/
+│   │   ├── error-parser.js
+│   │   ├── language-detector.js
+│   │   └── logger.js
+│   └── server.js             # Main Express server
 ├── prisma/
-│   └── schema.prisma          # Database schema
-├── tests/                     # Test files
+│   └── schema.prisma         # Database schema
 ├── docker-compose.yml
-├── Dockerfile
+├── .env
 └── package.json
 ```
 
-### Adding New Language Support
+---
 
-1. Add patterns to `src/utils/error-parser.js`
-2. Add language detection to `src/utils/language-detector.js`
-3. Add language rules to `src/prompts/surgeon-prompt.js`
+## 🐳 Docker Deployment
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f app
+
+# Stop services
+docker-compose down
+```
 
 ---
 
@@ -343,25 +421,10 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome! Please read our contributing guidelines before submitting a PR.
-
----
-
-## 🙏 Acknowledgments
-
-- **Google Gemini AI** for powerful code understanding
-- **Octokit** for GitHub API interactions
-- **Bull** for reliable job queue
-- **Prisma** for database ORM
-
----
-
 <div align="center">
 
-**Built with ❤️ by the CodeAutopsy Team**
+**Built with ❤️ by Hariharan R**
 
-[Report Bug](https://github.com/yourusername/codeautopsy/issues) · [Request Feature](https://github.com/yourusername/codeautopsy/issues)
+[Report Bug](https://github.com/hariharan-r06/CodeAutoSpy/issues) · [Request Feature](https://github.com/hariharan-r06/CodeAutoSpy/issues)
 
 </div>

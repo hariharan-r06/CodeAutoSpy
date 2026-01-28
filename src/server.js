@@ -1,7 +1,3 @@
-/**
- * CodeAutopsy - Main Server
- * AI-Powered CI/CD Failure Auto-Fix Agent
- */
 
 import 'dotenv/config';
 import express from 'express';
@@ -17,29 +13,21 @@ import logger from './utils/logger.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ================================
-// Middleware
-// ================================
-
-// Security headers
 app.use(helmet({
-    contentSecurityPolicy: false, // Disable for API
+    contentSecurityPolicy: false, 
 }));
 
-// CORS
 app.use(cors({
     origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
     methods: ['GET', 'POST', 'OPTIONS'],
 }));
 
-// Raw body for webhook signature verification
 app.use(express.json({
     verify: (req, res, buf) => {
         req.rawBody = buf.toString();
     },
 }));
 
-// Request logging
 app.use((req, res, next) => {
     const start = Date.now();
     res.on('finish', () => {
