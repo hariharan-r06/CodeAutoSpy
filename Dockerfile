@@ -7,9 +7,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Copy Prisma schema and generate client
+# Copy Prisma schema and generate client (using specific version)
 COPY prisma ./prisma
-RUN npx prisma generate
+RUN npx prisma@5.22.0 generate
 
 # Production stage
 FROM node:20-alpine AS production
@@ -21,7 +21,7 @@ RUN apk add --no-cache curl
 
 # Create non-root user
 RUN addgroup -g 1001 -S codeautopsy && \
-    adduser -S codeautopsy -u 1001
+  adduser -S codeautopsy -u 1001
 
 # Copy from builder
 COPY --from=builder /app/node_modules ./node_modules
