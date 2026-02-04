@@ -3,7 +3,7 @@
  * Analyzes build logs to detect the source of failures
  */
 
-import { generateContent, parseJsonResponse } from '../config/gemini.js';
+import { generateContent, parseJsonResponse } from '../config/ai-provider.js';
 import { getScoutPrompt, getFocusedScoutPrompt, getVerificationPrompt } from '../prompts/scout-prompt.js';
 import errorParser from '../utils/error-parser.js';
 import languageDetector from '../utils/language-detector.js';

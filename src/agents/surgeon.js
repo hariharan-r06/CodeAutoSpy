@@ -3,7 +3,7 @@
  * Generates code fixes using Gemini AI
  */
 
-import { generateContent, extractCodeFromResponse, parseJsonResponse } from '../config/gemini.js';
+import { generateContent, extractCodeFromResponse, parseJsonResponse } from '../config/ai-provider.js';
 import {
     getSurgeonPrompt,
     getComplexFixPrompt,

@@ -11,7 +11,7 @@ import {
     getDefaultBranch,
     getFileContent,
 } from '../config/github.js';
-import { generateContent } from '../config/gemini.js';
+import { generateContent } from '../config/ai-provider.js';
 import { getPRDescriptionPrompt, getIssueBodyPrompt } from '../prompts/analysis-prompt.js';
 import logger from '../utils/logger.js';
 
