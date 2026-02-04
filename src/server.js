@@ -215,7 +215,8 @@ app.get('/api/stats', async (req, res) => {
             topRepos,
         ] = await Promise.all([
             prisma.failureEvent.count(),
-            prisma.failureEvent.count({ where: { status: 'FIXED' } }),
+            // Count both FIXED and PR_CREATED as successful fixes
+            prisma.failureEvent.count({ where: { status: { in: ['FIXED', 'PR_CREATED'] } } }),
             prisma.failureEvent.count({ where: { status: 'FAILED' } }),
             prisma.failureEvent.count({ where: { status: { in: ['DETECTED', 'ANALYZING', 'FIXING'] } } }),
             prisma.failureEvent.findMany({
@@ -227,6 +228,8 @@ app.get('/api/stats', async (req, res) => {
                     status: true,
                     errorType: true,
                     createdAt: true,
+                    branch: true,
+                    prUrl: true,
                 },
             }),
             prisma.failureEvent.groupBy({
