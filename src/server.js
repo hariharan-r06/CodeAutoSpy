@@ -10,11 +10,16 @@ import { fixQueue, closeQueue } from './queue/fix-queue.js';
 import { sendStartupNotification, sendShutdownNotification } from './notifications/discord.js';
 import logger from './utils/logger.js';
 
+// Handle BigInt serialization for JSON responses
+BigInt.prototype.toJSON = function () {
+    return Number(this);
+};
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(helmet({
-    contentSecurityPolicy: false, 
+    contentSecurityPolicy: false,
 }));
 
 app.use(cors({
@@ -124,6 +129,209 @@ app.post('/api/queue/clean', async (req, res) => {
     }
 });
 
+// ================================
+// Dashboard API Endpoints
+// ================================
+
+// Get all failure events with pagination
+app.get('/api/events', async (req, res) => {
+    try {
+        const { page = 1, limit = 10, status, repo } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        const where = {};
+        if (status) where.status = status;
+        if (repo) where.repoFullName = { contains: repo };
+
+        const { default: prisma } = await import('./config/database.js');
+
+        const [events, total] = await Promise.all([
+            prisma.failureEvent.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: parseInt(limit),
+                include: {
+                    fixAttempts: {
+                        orderBy: { createdAt: 'desc' },
+                        take: 1,
+                    },
+                },
+            }),
+            prisma.failureEvent.count({ where }),
+        ]);
+
+        res.json({
+            events,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / parseInt(limit)),
+            },
+        });
+    } catch (error) {
+        logger.error('Get events error', { error: error.message });
+        res.status(500).json({ error: 'Failed to get events' });
+    }
+});
+
+// Get single event with all details
+app.get('/api/events/:id', async (req, res) => {
+    try {
+        const { default: prisma } = await import('./config/database.js');
+
+        const event = await prisma.failureEvent.findUnique({
+            where: { id: req.params.id },
+            include: {
+                fixAttempts: {
+                    orderBy: { createdAt: 'desc' },
+                },
+            },
+        });
+
+        if (!event) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        res.json(event);
+    } catch (error) {
+        logger.error('Get event error', { error: error.message });
+        res.status(500).json({ error: 'Failed to get event' });
+    }
+});
+
+// Get dashboard stats
+app.get('/api/stats', async (req, res) => {
+    try {
+        const { default: prisma } = await import('./config/database.js');
+
+        const [
+            totalEvents,
+            fixedEvents,
+            failedEvents,
+            pendingEvents,
+            recentEvents,
+            topRepos,
+        ] = await Promise.all([
+            prisma.failureEvent.count(),
+            prisma.failureEvent.count({ where: { status: 'FIXED' } }),
+            prisma.failureEvent.count({ where: { status: 'FAILED' } }),
+            prisma.failureEvent.count({ where: { status: { in: ['DETECTED', 'ANALYZING', 'FIXING'] } } }),
+            prisma.failureEvent.findMany({
+                orderBy: { createdAt: 'desc' },
+                take: 5,
+                select: {
+                    id: true,
+                    repoFullName: true,
+                    status: true,
+                    errorType: true,
+                    createdAt: true,
+                },
+            }),
+            prisma.failureEvent.groupBy({
+                by: ['repoFullName'],
+                _count: { id: true },
+                orderBy: { _count: { id: 'desc' } },
+                take: 5,
+            }),
+        ]);
+
+        const successRate = totalEvents > 0
+            ? Math.round((fixedEvents / totalEvents) * 100)
+            : 0;
+
+        res.json({
+            totalEvents,
+            fixedEvents,
+            failedEvents,
+            pendingEvents,
+            successRate,
+            recentEvents,
+            topRepos: topRepos.map(r => ({
+                repo: r.repoFullName,
+                count: r._count.id,
+            })),
+        });
+    } catch (error) {
+        logger.error('Get stats error', { error: error.message });
+        res.status(500).json({ error: 'Failed to get stats' });
+    }
+});
+
+// Get fix attempts
+app.get('/api/fixes', async (req, res) => {
+    try {
+        const { page = 1, limit = 10 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        const { default: prisma } = await import('./config/database.js');
+
+        const [fixes, total] = await Promise.all([
+            prisma.fixAttempt.findMany({
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: parseInt(limit),
+                include: {
+                    failureEvent: {
+                        select: {
+                            repoFullName: true,
+                            branch: true,
+                            errorType: true,
+                        },
+                    },
+                },
+            }),
+            prisma.fixAttempt.count(),
+        ]);
+
+        res.json({
+            fixes,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / parseInt(limit)),
+            },
+        });
+    } catch (error) {
+        logger.error('Get fixes error', { error: error.message });
+        res.status(500).json({ error: 'Failed to get fixes' });
+    }
+});
+
+// Get notifications
+app.get('/api/notifications', async (req, res) => {
+    try {
+        const { page = 1, limit = 20 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        const { default: prisma } = await import('./config/database.js');
+
+        const [notifications, total] = await Promise.all([
+            prisma.notification.findMany({
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: parseInt(limit),
+            }),
+            prisma.notification.count(),
+        ]);
+
+        res.json({
+            notifications,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / parseInt(limit)),
+            },
+        });
+    } catch (error) {
+        logger.error('Get notifications error', { error: error.message });
+        res.status(500).json({ error: 'Failed to get notifications' });
+    }
+});
+
 // Manual trigger endpoint (for testing)
 app.post('/api/trigger', async (req, res) => {
     const { owner, repo, commitSha, runId, logsUrl, branch } = req.body;
@@ -135,7 +343,7 @@ app.post('/api/trigger', async (req, res) => {
     }
 
     try {
-        const { prisma } = await import('./config/database.js');
+        const { default: prisma } = await import('./config/database.js');
 
         // Create failure event
         const failureEvent = await prisma.failureEvent.create({
